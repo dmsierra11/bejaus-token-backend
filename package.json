@@ -1,0 +1,45 @@
+{
+  "name": "bejaus-token-backend",
+  "version": "1.0.0",
+  "description": "Backend MVP para Bejaus Studio Token",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "postinstall": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:generate": "prisma generate",
+    "prisma:studio": "prisma studio",
+    "setup": "make setup",
+    "install:make": "make install",
+    "check:make": "make check"
+  },
+  "keywords": ["token", "blockchain", "polygon", "stripe", "thirdweb"],
+  "author": "Bejaus Studio",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "prisma": "^5.7.1",
+    "@prisma/client": "^5.7.1",
+    "stripe": "^14.10.0",
+    "@thirdweb-dev/sdk": "^4.0.98",
+    "zod": "^3.22.4",
+    "dotenv": "^16.3.1",
+    "jsonwebtoken": "^9.0.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/cors": "^2.8.17",
+    "typescript": "^5.3.2",
+    "ts-node-dev": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

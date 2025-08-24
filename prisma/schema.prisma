@@ -1,0 +1,173 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  walletAddress String?
+  createdAt    DateTime @default(now())
+  
+  // Relations
+  orders       Order[]
+  mints        Mint[]
+  perkClaims   PerkClaim[]
+  voteBallots  VoteBallot[]
+  
+  @@map("users")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  tokenAmount Int
+  priceEur    Float
+  active      Boolean  @default(true)
+  
+  // Relations
+  orders      Order[]
+  
+  @@map("products")
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  status    String   @default("pending") // pending, completed, failed
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  payments  Payment[]
+  mints     Mint[]
+  
+  @@map("orders")
+}
+
+model Payment {
+  id         String   @id @default(cuid())
+  orderId    String
+  provider   String   @default("stripe")
+  amountEur  Float
+  status     String   @default("pending") // pending, completed, failed
+  createdAt  DateTime @default(now())
+  
+  // Relations
+  order      Order    @relation(fields: [orderId], references: [id])
+  
+  @@map("payments")
+}
+
+model Mint {
+  id          String   @id @default(cuid())
+  orderId     String
+  userId      String
+  tokenAmount Int
+  txHash      String?
+  chainId     Int      @default(137) // Polygon mainnet
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  order       Order    @relation(fields: [orderId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@map("mints")
+}
+
+model Perk {
+  id          String   @id @default(cuid())
+  name        String
+  tokenCost   Int
+  type        String   // physical, digital, experience
+  metadataJson String? // JSON string for additional data
+  active      Boolean  @default(true)
+  
+  // Relations
+  perkClaims  PerkClaim[]
+  
+  @@map("perks")
+}
+
+model PerkClaim {
+  id          String    @id @default(cuid())
+  perkId      String
+  userId      String
+  tokenCost   Int
+  qrCode      String    @unique
+  redeemedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  
+  // Relations
+  perk        Perk      @relation(fields: [perkId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+  
+  @@map("perk_claims")
+}
+
+model Vote {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  startAt     DateTime
+  endAt       DateTime
+  active      Boolean  @default(true)
+  
+  // Relations
+  options     VoteOption[]
+  ballots     VoteBallot[]
+  
+  @@map("votes")
+}
+
+model VoteOption {
+  id      String @id @default(cuid())
+  voteId  String
+  label   String
+  
+  // Relations
+  vote    Vote        @relation(fields: [voteId], references: [id])
+  ballots VoteBallot[]
+  
+  @@map("vote_options")
+}
+
+model VoteBallot {
+  id       String   @id @default(cuid())
+  voteId   String
+  optionId String
+  userId   String
+  castAt   DateTime @default(now())
+  
+  // Relations
+  vote     Vote       @relation(fields: [voteId], references: [id])
+  option   VoteOption @relation(fields: [optionId], references: [id])
+  user     User       @relation(fields: [userId], references: [id])
+  
+  @@unique([voteId, userId]) // One vote per user per vote
+  
+  @@map("vote_ballots")
+}
+
+model Ledger {
+  id            String   @id @default(cuid())
+  kind          String   // payment, mint, perk_claim, perk_redeem, vote
+  refId         String   // ID of the related record
+  direction     String   // in, out
+  amount        Float
+  currency      String   // EUR, TOKEN
+  metadataJson  String?  // JSON string for additional data
+  createdAt     DateTime @default(now())
+  
+  @@map("ledger")
+}
+
